@@ -1,0 +1,64 @@
+spring:
+  application:
+    name: mindata-availability-search
+
+  # Tomcat y los ejecutores de Spring corren sobre hilos virtuales (Java 21).
+  threads:
+    virtual:
+      enabled: true
+
+  jackson:
+    deserialization:
+      # [30.5] debe rechazarse en vez de truncarse silenciosamente a 30.
+      accept-float-as-int: false
+
+  datasource:
+    url: ${DB_URL:jdbc:oracle:thin:@//localhost:1521/FREEPDB1}
+    username: ${DB_USER:hotel}
+    password: ${DB_PASSWORD:hotel}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:20}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      # El esquema lo gestiona Flyway (src/main/resources/db/migration).
+      ddl-auto: none
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+        # Si el broker no confirma rápido, /search falla (503) en lugar de dejar
+        # un mensaje "fantasma" que se entregue más tarde.
+        request.timeout.ms: 3000
+        delivery.timeout.ms: 5000
+        max.block.ms: 3000
+    consumer:
+      group-id: hotel-availability-persister
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      max-poll-records: 500
+    listener:
+      type: batch
+      concurrency: 3
+
+app:
+  kafka:
+    topic: hotel_availability_searches
+    partitions: 3
+    replication-factor: 1
+    producer:
+      publish-timeout: 7s
+    consumer:
+      # Máximo de inserts simultáneos contra la base (hilos virtuales en espera no consumen hilos de plataforma).
+      max-concurrency: 50
+  cors:
+    # Lista separada por comas. Por defecto, Swagger UI levantado en el puerto 8081.
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:8081}
+
+logging:
+  level:
+    org.apache.kafka: WARN

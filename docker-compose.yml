@@ -1,0 +1,78 @@
+services:
+  kafka:
+    image: apache/kafka:4.3.1
+    container_name: mindata-kafka
+    # Límites de recursos: evitan que un contenedor afecte a los demás o al host.
+    mem_limit: 1g
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      # INTERNAL (kafka:29092) para los contenedores; EXTERNAL (localhost:9092) para el host.
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      # Heap explícito dentro del mem_limit; el resto queda para page cache y memoria nativa.
+      KAFKA_HEAP_OPTS: "-Xms512m -Xmx512m"
+    healthcheck:
+      # Chequeo de puerto con nc: kafka-broker-api-versions.sh levantaba una JVM en cada chequeo (picos de ~200% de CPU).
+      test: ["CMD-SHELL", "nc -z localhost 29092"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  oracle:
+    image: gvenzl/oracle-free:23-slim-faststart
+    container_name: mindata-oracle
+    # Oracle Free usa como máximo 2 GB para la base; el resto es para sus procesos de fondo.
+    mem_limit: 3g
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: oracle
+      APP_USER: mindata
+      APP_USER_PASSWORD: mindata
+    volumes:
+      # Persiste la base entre "docker compose down" y recreaciones del contenedor.
+      # APP_USER/APP_USER_PASSWORD solo se aplican con el volumen vacío. Limpiar: docker compose down -v
+      - oracle-data:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      # La primera vez, con el volumen vacío, Oracle tarda varios minutos en crear la base.
+      start_period: 5m
+
+  app:
+    build: .
+    image: mindata-availability-search:1.0.0
+    container_name: mindata-service
+    # Con -XX:MaxRAMPercentage=75 (Dockerfile) el heap máximo queda en ~768 MB.
+    mem_limit: 1g
+    cpus: 2
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:oracle:thin:@//oracle:1521/FREEPDB1
+      DB_USER: hotel
+      DB_PASSWORD: hotel
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      kafka:
+        condition: service_healthy
+      oracle:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  oracle-data:

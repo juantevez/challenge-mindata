@@ -1,0 +1,289 @@
+openapi: 3.1.0
+info:
+  title: Hotel Availability Search API
+  version: 1.0.0
+  description: |
+    Registra búsquedas de disponibilidad hotelera y permite consultar cuántas búsquedas iguales se realizaron.
+
+    `POST /search` publica la búsqueda en Kafka y un consumidor la persiste en Oracle de forma asíncrona,
+    por eso una búsqueda recién creada puede devolver 404 en `GET /count` durante unos milisegundos.
+
+    Dos búsquedas son **iguales** si coinciden el hotel (distinguiendo mayúsculas), las fechas y las edades,
+    sin importar el orden de las edades: `[30, 29, 1, 3]` equivale a `[3, 29, 30, 1]`.
+
+    Todas las respuestas de error siguen el formato RFC 9457 (`application/problem+json`).
+servers:
+  - url: http://localhost:8080
+    description: Local (docker compose o mvn spring-boot:run)
+# La API no tiene autenticación.
+security: []
+tags:
+  - name: Searches
+    description: Registro y conteo de búsquedas de disponibilidad
+
+paths:
+  /search:
+    post:
+      tags: [Searches]
+      operationId: registerSearch
+      summary: Registra una búsqueda de disponibilidad
+      description: |
+        Valida la búsqueda, le asigna un identificador nuevo (UUID) y la publica en el topic
+        `hotel_availability_searches`. Responde cuando el broker confirma la publicación.
+        Cada invocación recibe un `searchId` distinto, aunque el payload se repita.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+            example:
+              hotelId: 1234aBc
+              checkIn: 29/12/2023
+              checkOut: 31/12/2023
+              ages: [30, 29, 1, 3]
+      responses:
+        '200':
+          description: Búsqueda registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+              example:
+                searchId: 3f0c8d2e-6c1b-4f7a-9a51-0d2b8e7c4a10
+        '400':
+          description: Payload inválido o JSON mal formado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblem'
+              examples:
+                validation:
+                  summary: Falla de Bean Validation
+                  value:
+                    type: about:blank
+                    title: Validación fallida
+                    status: 400
+                    detail: El cuerpo de la solicitud no es válido
+                    instance: /search
+                    errors:
+                      - field: ages[1]
+                        message: debe ser mayor o igual que 0
+                      - field: stayOrderValid
+                        message: checkOut debe ser posterior a checkIn
+                invalidDate:
+                  summary: Fecha con formato o valor inválido
+                  value:
+                    type: about:blank
+                    title: Solicitud mal formada
+                    status: 400
+                    detail: "Valor inválido en el campo 'checkIn': se espera una fecha válida con formato dd/MM/yyyy"
+                    instance: /search
+                wrongType:
+                  summary: Tipo incorrecto en un campo (p. ej. edad decimal)
+                  value:
+                    type: about:blank
+                    title: Solicitud mal formada
+                    status: 400
+                    detail: "Valor inválido en el campo 'ages[0]'"
+                    instance: /search
+                malformedJson:
+                  summary: JSON ilegible
+                  value:
+                    type: about:blank
+                    title: Solicitud mal formada
+                    status: 400
+                    detail: El cuerpo JSON está mal formado o no se puede leer
+                    instance: /search
+        '503':
+          description: Kafka no confirmó la publicación; se puede reintentar
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              example:
+                type: about:blank
+                title: Mensajería no disponible
+                status: 503
+                detail: La búsqueda no pudo registrarse en este momento, reintente
+                instance: /search
+
+  /count:
+    get:
+      tags: [Searches]
+      operationId: countSearches
+      summary: Devuelve una búsqueda y cuántas búsquedas iguales existen
+      description: |
+        Busca la búsqueda por `searchId` y cuenta cuántas búsquedas iguales se registraron.
+        `count` incluye a la búsqueda consultada, por lo que siempre es al menos 1.
+      parameters:
+        - name: searchId
+          in: query
+          required: true
+          description: Identificador devuelto por `POST /search`
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+          example: 3f0c8d2e-6c1b-4f7a-9a51-0d2b8e7c4a10
+      responses:
+        '200':
+          description: Búsqueda encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CountResponse'
+              example:
+                searchId: 3f0c8d2e-6c1b-4f7a-9a51-0d2b8e7c4a10
+                search:
+                  hotelId: 1234aBc
+                  checkIn: 29/12/2023
+                  checkOut: 31/12/2023
+                  ages: [30, 29, 1, 3]
+                count: 2
+        '400':
+          description: Parámetro `searchId` faltante, en blanco o demasiado largo
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblem'
+              example:
+                type: about:blank
+                title: Validación fallida
+                status: 400
+                detail: Los parámetros de la solicitud no son válidos
+                instance: /count
+                errors:
+                  - field: searchId
+                    message: no debe estar en blanco
+        '404':
+          description: No existe una búsqueda con ese `searchId` (o todavía se está procesando)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              example:
+                type: about:blank
+                title: Búsqueda no encontrada
+                status: 404
+                detail: "La búsqueda 'unknown-id' no fue encontrada (puede que todavía se esté procesando)"
+                instance: /count
+
+components:
+  schemas:
+    SearchRequest:
+      type: object
+      required: [hotelId, checkIn, checkOut, ages]
+      description: '`checkOut` debe ser posterior a `checkIn` (error informado en el campo `stayOrderValid`).'
+      properties:
+        hotelId:
+          type: string
+          minLength: 1
+          maxLength: 64
+          description: Identificador del hotel; no puede estar en blanco
+          example: 1234aBc
+        checkIn:
+          $ref: '#/components/schemas/Date'
+        checkOut:
+          $ref: '#/components/schemas/Date'
+        ages:
+          type: array
+          minItems: 1
+          maxItems: 20
+          description: Edades de los huéspedes; el orden no influye en la igualdad de búsquedas
+          items:
+            type: integer
+            minimum: 0
+            maximum: 120
+          example: [30, 29, 1, 3]
+
+    SearchResponse:
+      type: object
+      required: [searchId]
+      properties:
+        searchId:
+          type: string
+          format: uuid
+          description: Identificador único asignado a esta invocación
+          example: 3f0c8d2e-6c1b-4f7a-9a51-0d2b8e7c4a10
+
+    CountResponse:
+      type: object
+      required: [searchId, search, count]
+      properties:
+        searchId:
+          type: string
+          example: 3f0c8d2e-6c1b-4f7a-9a51-0d2b8e7c4a10
+        search:
+          $ref: '#/components/schemas/SearchView'
+        count:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Cantidad de búsquedas iguales, incluida la consultada
+          example: 2
+
+    SearchView:
+      type: object
+      required: [hotelId, checkIn, checkOut, ages]
+      description: La búsqueda tal como fue registrada
+      properties:
+        hotelId:
+          type: string
+          example: 1234aBc
+        checkIn:
+          $ref: '#/components/schemas/Date'
+        checkOut:
+          $ref: '#/components/schemas/Date'
+        ages:
+          type: array
+          items:
+            type: integer
+          example: [30, 29, 1, 3]
+
+    Date:
+      type: string
+      pattern: '^\d{2}/\d{2}/\d{4}$'
+      description: Fecha `dd/MM/yyyy` de calendario real (estricto; `31/02/2024` se rechaza)
+      example: 29/12/2023
+
+    Problem:
+      type: object
+      description: Error RFC 9457
+      properties:
+        type:
+          type: string
+          format: uri-reference
+          default: about:blank
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
+
+    ValidationProblem:
+      description: Error RFC 9457; `errors` está presente solo en fallas de validación
+      allOf:
+        - $ref: '#/components/schemas/Problem'
+        - type: object
+          properties:
+            errors:
+              type: array
+              items:
+                $ref: '#/components/schemas/FieldError'
+
+    FieldError:
+      type: object
+      required: [field, message]
+      properties:
+        field:
+          type: string
+          description: Ruta del campo o nombre del parámetro inválido
+          example: ages[1]
+        message:
+          type: string
+          example: debe ser mayor o igual que 0

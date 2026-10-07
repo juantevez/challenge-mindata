@@ -1,0 +1,8 @@
+# Perfil para ejecutar sin Oracle (H2 en modo compatibilidad Oracle).
+# Kafka sigue siendo necesario (docker compose up -d kafka).
+spring:
+  datasource:
+    url: jdbc:h2:mem:hotels;MODE=Oracle;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
