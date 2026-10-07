@@ -23,10 +23,10 @@ docker compose up -d --build
 La aplicación queda en `http://localhost:8080`. Arranca cuando Kafka y Oracle están *healthy*, y Flyway crea el esquema al iniciar. La primera vez Oracle tarda unos minutos en crear la base.
 
 ```bash
-docker compose ps               # estado de los contenedores
-docker compose logs -f app      # logs de la aplicación
-docker compose down             # apagar (los datos de Oracle persisten en un volumen)
-docker compose down -v          # apagar y borrar los datos
+docker compose ps                           # estado de los contenedores
+docker compose logs -f mindata-service      # logs de la aplicación
+docker compose down                         # apagar (los datos de Oracle persisten en un volumen)
+docker compose down -v                      # apagar y borrar los datos
 ```
 
 Cada contenedor tiene límites de recursos: Oracle 3 GB, Kafka 1 GB y la aplicación 1 GB y 2 CPUs.
