@@ -108,46 +108,6 @@ Todas las respuestas de error siguen el formato RFC 9457 (`application/problem+j
 }
 ```
 
-## Flujo
-
-```mermaid
-sequenceDiagram
-    actor C as Cliente
-    participant API as SearchController
-    participant K as Kafka
-    participant CO as SearchKafkaConsumer
-    participant DB as Oracle
-
-    C->>API: POST /search
-    alt payload inválido
-        API-->>C: 400 problem+json
-    else payload válido
-        API->>API: genera searchId (UUID)
-        API->>K: publica (clave = searchId, acks=all)
-        alt broker confirma
-            K-->>API: ack
-            API-->>C: 200 { searchId }
-        else sin confirmación o timeout
-            API-->>C: 503 problem+json
-        end
-    end
-
-    K->>CO: lote de mensajes
-    par un hilo virtual por mensaje
-        CO->>DB: INSERT (idempotente por searchId)
-    end
-    CO->>K: confirma offset
-
-    C->>API: GET /count?searchId=…
-    API->>DB: busca por searchId
-    alt todavía no persistida
-        API-->>C: 404 problem+json
-    else encontrada
-        API->>DB: cuenta por huella SHA-256
-        API-->>C: 200 { searchId, search, count }
-    end
-```
-
 ## Decisiones de diseño
 
 **Búsquedas iguales.** Dos búsquedas son iguales si coinciden el hotel (distinguiendo mayúsculas), las fechas y las edades, sin importar el orden de las edades: `[30, 29, 1, 3]` equivale a `[3, 29, 30, 1]`. Las repeticiones sí cuentan. Para cada búsqueda se calcula una huella SHA-256 sobre esa forma canónica, que se guarda en una columna indexada. Así el conteo de `/count` es una consulta por índice, sin comparar listas.
