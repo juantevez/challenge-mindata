@@ -59,8 +59,8 @@ En `postman/Postman-Collection.json` hay una colección de Postman con el flujo 
 ```bash
 curl -X POST localhost:8080/search -H 'Content-Type: application/json' -d '{
   "hotelId": "1234aBc",
-  "checkIn": "29/12/2023",
-  "checkOut": "31/12/2023",
+  "checkIn": "16/10/2026",
+  "checkOut": "18/10/2026",
   "ages": [30, 29, 1, 3]
 }'
 ```
@@ -79,7 +79,7 @@ curl -X POST localhost:8080/search -H 'Content-Type: application/json' -d '{
 ```json
 {
   "searchId": "3f0c8d2e-6c1b-4f7a-9a51-0d2b8e7c4a10",
-  "search": { "hotelId": "1234aBc", "checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": [30, 29, 1, 3] },
+  "search": { "hotelId": "1234aBc", "checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": [30, 29, 1, 3] },
   "count": 2
 }
 ```

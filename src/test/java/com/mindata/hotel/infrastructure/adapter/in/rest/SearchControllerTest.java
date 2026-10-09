@@ -39,11 +39,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(SearchController.class)
-@EnableConfigurationProperties(AppProperties.class) // @ConfigurationPropertiesScan no aplica en los tests de slice
+@EnableConfigurationProperties(AppProperties.class)
 class SearchControllerTest {
 
     private static final String VALID_BODY = """
-            {"hotelId": "1234aBc", "checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": [30, 29, 1, 3]}
+            {"hotelId": "1234aBc", "checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": [30, 29, 1, 3]}
             """;
 
     @Autowired
@@ -68,8 +68,8 @@ class SearchControllerTest {
         HotelSearch search = captor.getValue();
         assertAll(
                 () -> assertThat(search.hotelId()).isEqualTo("1234aBc"),
-                () -> assertThat(search.checkIn()).isEqualTo(LocalDate.of(2023, 12, 29)),
-                () -> assertThat(search.checkOut()).isEqualTo(LocalDate.of(2023, 12, 31)),
+                () -> assertThat(search.checkIn()).isEqualTo(LocalDate.of(2026, 10, 16)),
+                () -> assertThat(search.checkOut()).isEqualTo(LocalDate.of(2026, 10, 18)),
                 () -> assertThat(search.ages()).containsExactly(30, 29, 1, 3));
     }
 
@@ -84,40 +84,40 @@ class SearchControllerTest {
     static Stream<Arguments> invalidPayloads() {
         return Stream.of(
                 Arguments.of("blank hotelId", """
-                        {"hotelId": " ", "checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": [30]}"""),
+                        {"hotelId": " ", "checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": [30]}"""),
                 Arguments.of("missing hotelId", """
-                        {"checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": [30]}"""),
+                        {"checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": [30]}"""),
                 Arguments.of("hotelId too long", """
-                        {"hotelId": "%s", "checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": [30]}"""
+                        {"hotelId": "%s", "checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": [30]}"""
                         .formatted("h".repeat(65))),
                 Arguments.of("ISO date instead of dd/MM/yyyy", """
-                        {"hotelId": "h", "checkIn": "2023-12-29", "checkOut": "31/12/2023", "ages": [30]}"""),
+                        {"hotelId": "h", "checkIn": "2026-10-16", "checkOut": "18/10/2026", "ages": [30]}"""),
                 Arguments.of("impossible calendar date", """
-                        {"hotelId": "h", "checkIn": "31/02/2024", "checkOut": "05/03/2024", "ages": [30]}"""),
+                        {"hotelId": "h", "checkIn": "31/11/2026", "checkOut": "02/12/2026", "ages": [30]}"""),
                 Arguments.of("month 13", """
-                        {"hotelId": "h", "checkIn": "10/13/2023", "checkOut": "15/12/2023", "ages": [30]}"""),
+                        {"hotelId": "h", "checkIn": "16/13/2026", "checkOut": "18/10/2026", "ages": [30]}"""),
                 Arguments.of("date as a number", """
-                        {"hotelId": "h", "checkIn": 19720, "checkOut": "15/12/2023", "ages": [30]}"""),
+                        {"hotelId": "h", "checkIn": 20742, "checkOut": "18/10/2026", "ages": [30]}"""),
                 Arguments.of("missing checkOut", """
-                        {"hotelId": "h", "checkIn": "29/12/2023", "ages": [30]}"""),
+                        {"hotelId": "h", "checkIn": "16/10/2026", "ages": [30]}"""),
                 Arguments.of("checkOut equal to checkIn", """
-                        {"hotelId": "h", "checkIn": "29/12/2023", "checkOut": "29/12/2023", "ages": [30]}"""),
+                        {"hotelId": "h", "checkIn": "16/10/2026", "checkOut": "16/10/2026", "ages": [30]}"""),
                 Arguments.of("checkOut before checkIn", """
-                        {"hotelId": "h", "checkIn": "31/12/2023", "checkOut": "29/12/2023", "ages": [30]}"""),
+                        {"hotelId": "h", "checkIn": "18/10/2026", "checkOut": "16/10/2026", "ages": [30]}"""),
                 Arguments.of("empty ages", """
-                        {"hotelId": "h", "checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": []}"""),
+                        {"hotelId": "h", "checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": []}"""),
                 Arguments.of("missing ages", """
-                        {"hotelId": "h", "checkIn": "29/12/2023", "checkOut": "31/12/2023"}"""),
+                        {"hotelId": "h", "checkIn": "16/10/2026", "checkOut": "18/10/2026"}"""),
                 Arguments.of("negative age", """
-                        {"hotelId": "h", "checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": [30, -1]}"""),
+                        {"hotelId": "h", "checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": [30, -1]}"""),
                 Arguments.of("age above 120", """
-                        {"hotelId": "h", "checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": [121]}"""),
+                        {"hotelId": "h", "checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": [121]}"""),
                 Arguments.of("null age", """
-                        {"hotelId": "h", "checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": [30, null]}"""),
+                        {"hotelId": "h", "checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": [30, null]}"""),
                 Arguments.of("fractional age", """
-                        {"hotelId": "h", "checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": [30.5]}"""),
+                        {"hotelId": "h", "checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": [30.5]}"""),
                 Arguments.of("too many ages", """
-                        {"hotelId": "h", "checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": [%s]}"""
+                        {"hotelId": "h", "checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": [%s]}"""
                         .formatted("1,".repeat(20) + "1")),
                 Arguments.of("broken JSON", "{\"hotelId\": "),
                 Arguments.of("empty body", ""));
@@ -134,21 +134,21 @@ class SearchControllerTest {
     static Stream<Arguments> invalidPayloadMessages() {
         return Stream.of(
                 Arguments.of("stayOrderValid", "checkOut debe ser posterior a checkIn", """
-                        {"hotelId": "h", "checkIn": "31/12/2023", "checkOut": "29/12/2023", "ages": [30]}"""),
+                        {"hotelId": "h", "checkIn": "18/10/2026", "checkOut": "16/10/2026", "ages": [30]}"""),
                 Arguments.of("ages[1]", "debe ser mayor o igual que 0", """
-                        {"hotelId": "h", "checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": [30, -1]}"""),
+                        {"hotelId": "h", "checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": [30, -1]}"""),
                 Arguments.of("ages[1]", "no debe ser nulo", """
-                        {"hotelId": "h", "checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": [30, null]}"""),
+                        {"hotelId": "h", "checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": [30, null]}"""),
                 Arguments.of("hotelId", "no debe estar en blanco", """
-                        {"hotelId": null, "checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": [30]}"""),
+                        {"hotelId": null, "checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": [30]}"""),
                 Arguments.of("hotelId", "no debe estar en blanco", """
-                        {"hotelId": "", "checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": [30]}"""),
+                        {"hotelId": "", "checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": [30]}"""),
                 Arguments.of("checkIn", "no debe ser nulo", """
-                        {"hotelId": "h", "checkIn": "", "checkOut": "31/12/2023", "ages": [30]}"""),
+                        {"hotelId": "h", "checkIn": "", "checkOut": "18/10/2026", "ages": [30]}"""),
                 Arguments.of("checkOut", "no debe ser nulo", """
-                        {"hotelId": "h", "checkIn": "29/12/2023", "ages": [30]}"""),
+                        {"hotelId": "h", "checkIn": "16/10/2026", "ages": [30]}"""),
                 Arguments.of("ages", "no debe estar vacío", """
-                        {"hotelId": "h", "checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": []}"""));
+                        {"hotelId": "h", "checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": []}"""));
     }
 
     @ParameterizedTest(name = "[{index}] {1}")
@@ -162,10 +162,10 @@ class SearchControllerTest {
     static Stream<Arguments> unreadableFields() {
         return Stream.of(
                 Arguments.of("""
-                        {"hotelId": "h", "checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": [30, 2.5]}""",
+                        {"hotelId": "h", "checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": [30, 2.5]}""",
                         "Valor inválido en el campo 'ages[1]'"),
                 Arguments.of("""
-                        {"hotelId": "h", "checkIn": "31/02/2024", "checkOut": "05/03/2024", "ages": [30]}""",
+                        {"hotelId": "h", "checkIn": "31/11/2026", "checkOut": "02/12/2026", "ages": [30]}""",
                         "Valor inválido en el campo 'checkIn': se espera una fecha válida con formato dd/MM/yyyy"));
     }
 
@@ -181,15 +181,15 @@ class SearchControllerTest {
     void countReturnsTheSearchAndTheNumberOfEqualSearches() throws Exception {
         SearchId id = new SearchId("abc-123");
         HotelSearch search = new HotelSearch(
-                "1234aBc", LocalDate.of(2023, 12, 29), LocalDate.of(2023, 12, 31), List.of(3, 29, 30, 1));
+                "1234aBc", LocalDate.of(2026, 10, 16), LocalDate.of(2026, 10, 18), List.of(3, 29, 30, 1));
         when(countSearches.count(id)).thenReturn(new SearchCount(new RegisteredSearch(id, search), 100));
 
         mockMvc.perform(get("/count").param("searchId", "abc-123")).andExpectAll(
                 status().isOk(),
                 jsonPath("$.searchId").value("abc-123"),
                 jsonPath("$.search.hotelId").value("1234aBc"),
-                jsonPath("$.search.checkIn").value("29/12/2023"),
-                jsonPath("$.search.checkOut").value("31/12/2023"),
+                jsonPath("$.search.checkIn").value("16/10/2026"),
+                jsonPath("$.search.checkOut").value("18/10/2026"),
                 jsonPath("$.search.ages[0]").value(3),
                 jsonPath("$.search.ages.length()").value(4),
                 jsonPath("$.count").value(100));

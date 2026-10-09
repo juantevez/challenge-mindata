@@ -75,7 +75,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hotelId\": \"{{hotelId}}\",\n  \"checkIn\": \"29/12/2023\",\n  \"checkOut\": \"31/12/2023\",\n  \"ages\": [30, 29, 1, 3]\n}",
+              "raw": "{\n  \"hotelId\": \"{{hotelId}}\",\n  \"checkIn\": \"16/10/2026\",\n  \"checkOut\": \"18/10/2026\",\n  \"ages\": [30, 29, 1, 3]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -117,7 +117,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hotelId\": \"{{hotelId}}\",\n  \"checkIn\": \"29/12/2023\",\n  \"checkOut\": \"31/12/2023\",\n  \"ages\": [3, 29, 30, 1]\n}",
+              "raw": "{\n  \"hotelId\": \"{{hotelId}}\",\n  \"checkIn\": \"16/10/2026\",\n  \"checkOut\": \"18/10/2026\",\n  \"ages\": [3, 29, 30, 1]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -159,7 +159,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hotelId\": \"{{hotelId}}\",\n  \"checkIn\": \"29/12/2023\",\n  \"checkOut\": \"31/12/2023\",\n  \"ages\": [30, 29]\n}",
+              "raw": "{\n  \"hotelId\": \"{{hotelId}}\",\n  \"checkIn\": \"16/10/2026\",\n  \"checkOut\": \"18/10/2026\",\n  \"ages\": [30, 29]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -201,8 +201,8 @@
                   "pm.test('cuenta 2 (el orden de edades no importa)', () => pm.expect(body.count).to.eql(2));",
                   "pm.test('devuelve la búsqueda tal como se envió', () => {",
                   "  pm.expect(body.search.hotelId).to.eql(pm.collectionVariables.get('hotelId'));",
-                  "  pm.expect(body.search.checkIn).to.eql('29/12/2023');",
-                  "  pm.expect(body.search.checkOut).to.eql('31/12/2023');",
+                  "  pm.expect(body.search.checkIn).to.eql('16/10/2026');",
+                  "  pm.expect(body.search.checkOut).to.eql('18/10/2026');",
                   "  pm.expect(body.search.ages).to.eql([30, 29, 1, 3]);",
                   "});"
                 ]
@@ -290,7 +290,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hotelId\": \"1234aBc\",\n  \"checkIn\": \"31/12/2023\",\n  \"checkOut\": \"29/12/2023\",\n  \"ages\": [30, 29]\n}",
+              "raw": "{\n  \"hotelId\": \"1234aBc\",\n  \"checkIn\": \"18/10/2026\",\n  \"checkOut\": \"16/10/2026\",\n  \"ages\": [30, 29]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -332,7 +332,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hotelId\": \"1234aBc\",\n  \"checkIn\": \"30/02/2023\",\n  \"checkOut\": \"31/12/2023\",\n  \"ages\": [30]\n}",
+              "raw": "{\n  \"hotelId\": \"1234aBc\",\n  \"checkIn\": \"31/11/2026\",\n  \"checkOut\": \"02/12/2026\",\n  \"ages\": [30]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -374,7 +374,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hotelId\": \"\",\n  \"checkIn\": \"\",\n  \"checkOut\": \"31/12/2023\",\n  \"ages\": [-1, null]\n}",
+              "raw": "{\n  \"hotelId\": \"\",\n  \"checkIn\": \"\",\n  \"checkOut\": \"18/10/2026\",\n  \"ages\": [-1, null]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -416,7 +416,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hotelId\": \"1234aBc\",\n  \"checkIn\": \"29/12/2023\",\n  \"checkOut\": \"31/12/2023\",\n  \"ages\": [30.5]\n}",
+              "raw": "{\n  \"hotelId\": \"1234aBc\",\n  \"checkIn\": \"16/10/2026\",\n  \"checkOut\": \"18/10/2026\",\n  \"ages\": [30.5]\n}",
               "options": {
                 "raw": {
                   "language": "json"

@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 class SearchServicesTest {
 
     private static final HotelSearch SEARCH =
-            new HotelSearch("1234aBc", LocalDate.of(2023, 12, 29), LocalDate.of(2023, 12, 31), List.of(30, 29, 1, 3));
+            new HotelSearch("1234aBc", LocalDate.of(2026, 10, 16), LocalDate.of(2026, 10, 18), List.of(30, 29, 1, 3));
 
     @Mock
     SearchEventPublisher publisher;

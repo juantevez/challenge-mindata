@@ -84,8 +84,8 @@ class SearchFlowIntegrationTest {
                 status().isOk(),
                 jsonPath("$.searchId").value(reordered),
                 jsonPath("$.search.hotelId").value(hotel),
-                jsonPath("$.search.checkIn").value("29/12/2023"),
-                jsonPath("$.search.checkOut").value("31/12/2023"),
+                jsonPath("$.search.checkIn").value("16/10/2026"),
+                jsonPath("$.search.checkOut").value("18/10/2026"),
                 jsonPath("$.search.ages[0]").value(3),
                 jsonPath("$.search.ages[3]").value(1));
     }
@@ -160,7 +160,7 @@ class SearchFlowIntegrationTest {
 
     private String postSearch(String hotelId, String ages) throws Exception {
         String body = """
-                {"hotelId": "%s", "checkIn": "29/12/2023", "checkOut": "31/12/2023", "ages": %s}
+                {"hotelId": "%s", "checkIn": "16/10/2026", "checkOut": "18/10/2026", "ages": %s}
                 """.formatted(hotelId, ages);
         MvcResult result = mockMvc.perform(post("/search").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpectAll(

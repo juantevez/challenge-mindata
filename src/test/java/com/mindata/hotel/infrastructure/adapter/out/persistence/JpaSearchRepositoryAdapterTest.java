@@ -27,8 +27,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class JpaSearchRepositoryAdapterTest {
 
-    private static final LocalDate IN = LocalDate.of(2023, 12, 29);
-    private static final LocalDate OUT = LocalDate.of(2023, 12, 31);
+    private static final LocalDate IN = LocalDate.of(2026, 10, 16);
+    private static final LocalDate OUT = LocalDate.of(2026, 10, 18);
 
     @Autowired
     JpaSearchRepositoryAdapter repository;

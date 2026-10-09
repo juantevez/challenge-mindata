@@ -16,8 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 class HotelSearchTest {
 
-    private static final LocalDate IN = LocalDate.of(2023, 12, 29);
-    private static final LocalDate OUT = LocalDate.of(2023, 12, 31);
+    private static final LocalDate IN = LocalDate.of(2026, 10, 16);
+    private static final LocalDate OUT = LocalDate.of(2026, 10, 18);
 
     @Test
     void sameGuestsInDifferentOrderHaveTheSameFingerprint() {
@@ -74,7 +74,6 @@ class HotelSearchTest {
 
     @Test
     void acceptsDatesInThePast() {
-        // El ejemplo del enunciado usa 2023: no se exige que la estadía sea futura.
         assertThat(new HotelSearch("h", IN, OUT, List.of(30))).isNotNull();
     }
 

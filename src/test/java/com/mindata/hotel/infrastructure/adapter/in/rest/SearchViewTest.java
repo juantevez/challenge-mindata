@@ -14,7 +14,7 @@ class SearchViewTest {
     @Test
     void agesAreDefensivelyCopiedAndImmutable() {
         List<Integer> source = new ArrayList<>(List.of(30, 29));
-        SearchView view = new SearchView("h", "29/12/2023", "31/12/2023", source);
+        SearchView view = new SearchView("h", "16/10/2026", "18/10/2026", source);
         source.add(99);
 
         assertAll(
