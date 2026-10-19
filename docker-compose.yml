@@ -59,8 +59,8 @@ services:
       - "8080:8080"
     environment:
       DB_URL: jdbc:oracle:thin:@//oracle:1521/FREEPDB1
-      DB_USER: hotel
-      DB_PASSWORD: hotel
+      DB_USER: mindata
+      DB_PASSWORD: mindata
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
       kafka:

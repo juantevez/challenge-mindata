@@ -24,7 +24,7 @@ La aplicación queda en `http://localhost:8080`. Arranca cuando Kafka y Oracle e
 
 ```bash
 docker compose ps                           # estado de los contenedores
-docker compose logs -f mindata-service      # logs de la aplicación
+docker compose logs -f app                  # logs de la aplicación
 docker compose down                         # apagar (los datos de Oracle persisten en un volumen)
 docker compose down -v                      # apagar y borrar los datos
 ```
@@ -145,7 +145,7 @@ stateDiagram-v2
 Hexagonal: las dependencias apuntan siempre hacia el dominio (`infrastructure → application → domain`).
 
 ```
-com.riu.hotel
+com.mindata.hotel
 ├── domain                      Modelo y reglas de negocio, sin frameworks
 ├── application
 │   ├── port.in / port.out      Casos de uso y puertos de salida
